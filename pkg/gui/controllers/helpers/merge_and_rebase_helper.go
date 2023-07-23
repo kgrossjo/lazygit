@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/jesseduffield/generics/slices"
+	"github.com/jesseduffield/gocui"
 	"github.com/jesseduffield/lazygit/pkg/commands/git_commands"
 	"github.com/jesseduffield/lazygit/pkg/commands/types/enums"
 	"github.com/jesseduffield/lazygit/pkg/gui/types"
@@ -223,9 +224,11 @@ func (self *MergeAndRebaseHelper) RebaseOntoRef(ref string) error {
 			Label: self.c.Tr.SimpleRebase,
 			Key:   's',
 			OnPress: func() error {
-				self.c.LogAction(self.c.Tr.Actions.RebaseBranch)
-				err := self.c.Git().Rebase.RebaseBranch(ref)
-				return self.CheckMergeOrRebase(err)
+				return self.c.WithWaitingStatus(self.c.Tr.RebasingStatus, func(gocui.Task) error {
+					self.c.LogAction(self.c.Tr.Actions.RebaseBranch)
+					err := self.c.Git().Rebase.RebaseBranch(ref)
+					return self.CheckMergeOrRebase(err)
+				})
 			},
 		},
 		{
